@@ -135,8 +135,19 @@ function admin_post_thumbnail_html( string $content, $post_id, $thumbnail_id ) :
 		return $content;
 	}
 
+	//Art Project Group
+	if ( ! $switched && ! empty( $content ) ) {
+		$imagen    = wp_get_attachment_image_src( $thumbnail_id, 'original' );
+	}
+	//Art Project Group
+
 	switch_to_blog( get_site_id() );
 	$switched = true;
+	//Art Project Group
+	if ( ! empty( $imagen ) ) {
+		$thumbnail_id	= attachment_url_to_postid( $imagen[ 0] );
+	}
+	//Art Project Group
 	// $thumbnail_id is passed instead of post_id to avoid warning messages of nonexistent post object.
 	$content  = _wp_post_thumbnail_html( $thumbnail_id, $thumbnail_id );
 	$switched = false;
@@ -179,9 +190,20 @@ add_filter( 'wp_get_attachment_image_src', function( $image, $attachment_id, $si
 		return $image;
 	}
 
+	//Art Project Group
+	if ( ! $switched && ! is_media_site() && ! empty( $image ) ) {
+		$imagen    = ( $size != 'original' ) ? wp_get_attachment_image_src( $attachment_id, 'original' ) : $image;
+	}
+	//Art Project Group
+	
 	switch_to_media_site();
 
 	$switched = true;
+	//Art Project Group
+	if ( ! empty( $imagen ) ) {
+		$attachment_id	= attachment_url_to_postid( $imagen[ 0] );
+	}
+	//Art Project Group
 	$image    = wp_get_attachment_image_src( $attachment_id, $size, $icon );
 	$switched = false;
 
@@ -576,3 +598,4 @@ class Post_Thumbnail_Saver {
 }
 
 new Post_Thumbnail_Saver();
+
