@@ -754,34 +754,17 @@ add_action( 'pre_post_update', function ( int $post_id ): void {
 	add_action( "rest_insert_{$post_type}", $callback, 10, 2 );
 } );
 
-/*
-WP All Import
-*/
-//Cambia al sitio principal antes de procesar la imagen
-function apg_wp_all_import_single_image_uploads_dir( $images_uploads ) {
+//wp_insert_attachment_data
+function apg_wp_insert_attachment( $data ) {
 	switch_to_media_site();
 	
-	return $images_uploads;	
-}
-add_filter( 'wp_all_import_single_image_uploads_dir', __NAMESPACE__ . '\apg_wp_all_import_single_image_uploads_dir' );
-
-//Desvincula el producto al que se ha subido la imagen
-function apg_wp_insert_attachment( $data, $postarr, $unsanitized_postarr, $update ) {
 	$data[ 'post_parent' ] = 0;
 
 	return $data;
 }
-add_filter( 'wp_insert_attachment_data', __NAMESPACE__ . '\apg_wp_insert_attachment', 10 , 4 );
+add_filter( 'wp_insert_attachment_data', __NAMESPACE__ . '\apg_wp_insert_attachment' );
 
-//Genera la imagen destacada y la galería
-function apg_pmxi_gallery_image( $pid, $attid, $handle_image, $is_keep_existing_images ) {
-	switch_to_blog( (int) $GLOBALS['current_blog']->blog_id );
-	if ( empty( get_post_thumbnail_id( $pid ) ) ) { //Se añade como imagen destacada
-		$respuesta	= update_post_meta( $pid, '_thumbnail_id', $attid );
-	} else { //Se añade a la galería
-		$gallery_attachment_ids		= array_filter( explode( ",", get_post_meta( $pid, '_product_image_gallery', true ) ) );
-		$gallery_attachment_ids[]	= $attid;
-		$respuesta	= update_post_meta( $pid, "_product_image_gallery", implode( ",", $gallery_attachment_ids ) );
-	}
+function apg_wpai_restore( $attid ) {
+	restore_current_blog();
 }
-add_action( 'pmxi_gallery_image', __NAMESPACE__ . '\apg_pmxi_gallery_image', 20, 4 );
+add_action( 'add_attachment', __NAMESPACE__ . '\apg_wpai_restore' );
