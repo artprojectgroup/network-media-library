@@ -754,6 +754,9 @@ add_action( 'pre_post_update', function ( int $post_id ): void {
 	add_action( "rest_insert_{$post_type}", $callback, 10, 2 );
 } );
 
+/*
+WP All Import
+*/
 //wp_insert_attachment_data
 function apg_wp_insert_attachment( $data ) {
 	switch_to_media_site();
@@ -768,3 +771,16 @@ function apg_wpai_restore( $attid ) {
 	restore_current_blog();
 }
 add_action( 'add_attachment', __NAMESPACE__ . '\apg_wpai_restore' );
+
+//Genera la imagen destacada y la galería
+function apg_pmxi_gallery_image( $pid, $attid, $handle_image, $is_keep_existing_images ) {
+	switch_to_blog( (int) $GLOBALS['current_blog']->blog_id );
+	if ( empty( get_post_thumbnail_id( $pid ) ) ) { //Se añade como imagen destacada
+		$respuesta	= update_post_meta( $pid, '_thumbnail_id', $attid );
+	} else { //Se añade a la galería
+		$gallery_attachment_ids		= array_filter( explode( ",", get_post_meta( $pid, '_product_image_gallery', true ) ) );
+		$gallery_attachment_ids[]	= $attid;
+		$respuesta	= update_post_meta( $pid, "_product_image_gallery", implode( ",", $gallery_attachment_ids ) );
+	}
+}
+add_action( 'pmxi_gallery_image', __NAMESPACE__ . '\apg_pmxi_gallery_image', 20, 4 );
